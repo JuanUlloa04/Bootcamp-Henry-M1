@@ -145,6 +145,7 @@ chasis3.giveMeDay(); // 2
 
 // Todo la de arriba (funcion constructora) tambien se puede definir de esta manera (clase):
 // (en este caso si defino las funciones adentro porque el constructor aun así no las va a tener asociadas)
+/**
 class Chasis {
 	constructor(day) {
 		// puedes agregarle mas parametros
@@ -157,7 +158,7 @@ class Chasis {
 		return this.day;
 	}
 }
-
+*/
 // ? Javascript originalmente no estaba hecho para trabajar con clases pero para atraer a mas desarrolladores decidieron agregarle esta funcionalidad
 
 // No modifiquen nada debajo de esta linea
