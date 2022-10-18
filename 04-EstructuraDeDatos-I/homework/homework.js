@@ -40,11 +40,14 @@ function nFactorial(n) {
 function nFibonacci(n) {
 	// Secuencia de Fibonacci: 0,1,1,2,3,5,8,13,21,34,55,89,144,...
 	// Retorna el enesimo numero de la serie
-	// nFibonacci(n) = nFibonacci(n-1) + nFibonacci(n-2)
 	//  8            =     5           +       3
+	// nFibonacci(n) = nFibonacci(n-1) + nFibonacci(n-2)
 	//if (n >= 0 && n < 2) return n;
 	if (n === 0 || n === 1) return n;
 	return nFibonacci(n - 1) + nFibonacci(n - 2);
+	// al entrar en la recursividad primero se resolvera  nFibonacci(n - 1)
+	// una vez finalizado todo recien entrara a nFibonacci(n - 2)
+	// ver con phytonTutor
 }
 
 // *  sin recursividad iterando :
