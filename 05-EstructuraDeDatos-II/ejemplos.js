@@ -4,8 +4,8 @@ function Node(data) {
 }
 
 function List() {
-	this._length = 0;
 	this.head = null;
+	//this._length = 0; ---> podria no estar no indispensable
 }
 
 List.prototype.add = function (data) {
@@ -13,14 +13,14 @@ List.prototype.add = function (data) {
 	var current = this.head; // this hace referencia a quien lo llama
 
 	//* Si esta vacia:
-	// if (current === null)
+	// (!current) es igual a (current === null)
 	if (!current) {
 		// puede o no tener informacion en el head
 		// aca estoy en el caso de que no tengo un nodo asociado al head
 		// por lo tsnto list: -> null
 		this.head = node;
-		this._length++; // sumar 1 mas
-		return node; // opcional solo para ver si se agrego el node
+		//this._length++; // sumar 1 mas ---> podria no estar
+		return node;
 	}
 
 	//* Si no esta vacia, recorro hasta encontrar el ultimo:
@@ -29,9 +29,10 @@ List.prototype.add = function (data) {
 		current = current.next;
 	}
 
-	//* Despues del while el current.next ya no apuntara a null sino al nuevo node
+	// al salir del while se ejecuta esto
+	//* Despues del while el current.next ya no debe apuntar a null sino al nuevo node:
 	current.next = node;
-	this._length++;
+	//this._length++; ---> podria no estar
 	return node;
 };
 

@@ -12,7 +12,6 @@ Implementar la clase LinkedList, definiendo los siguientes métodos:
 */
 function LinkedList() {
 	this.head = null;
-	//this._length = 0; ---> podria no estar no indispensable
 }
 
 function Node(value) {
@@ -21,22 +20,21 @@ function Node(value) {
 }
 
 LinkedList.prototype.add = function (data) {
-	let nodo = new Node(data);
-	//  (!this.head) es igual a this.head === null
-	if (this.head === null) {
-		this.head = nodo;
-		//this._length++; ---> podria no estar
-	} else {
-		let current = this.head;
+	let node = new Node(data);
+	let current = this.head;
 
-		while (current.next !== null) {
-			current = current.next;
-		}
-		// al salir del while se ejecuta esto
-		current.next = nodo;
-		//this._length++; ---> podria no estar
+	if (!current) {
+		this.head = node;
+		return;
 	}
+
+	while (current.next) {
+		current = current.next;
+	}
+
+	current.next = node;
 };
+
 /* 
 var lista1 = new LinkedList();
 lista1.add('Henry');
@@ -50,22 +48,25 @@ LinkedList.prototype.remove = function () {
 	// recorrer hasta llegar al penultimo nodo
 	// a este nodo le digo que apunte a null, asi pierdo la referencia del que tenia antes
 
+	let current = this.head;
+
 	//* si no hay nodos:
-	//  (!this.head) es igual a this.head === null
-	if (this.head === null) return null;
+	if (!current) return null;
 
 	//* una lista de un solo nodo:
-	if (this.head.next === null) {
-		let aux1 = this.head; // guardo el nodo porque en la siguiente linea se perdera y necesito retornar su valor
+	//this.head.next === null
+	if (!current.next) {
+		let aux1 = current.value; // guardo el nodo porque necesito retornar su valor antes que se elimine
 		this.head = null; // elimina el último nodo de la lista
-		//this._length--; ---> podria no estar
-		return aux1.value; //y retorna su valor
+		return aux1; //y retorna su valor
 	} else {
 		//* si tiene mas nodos hay que recorrer:
-		let current = this.head;
-		while (current.next.next !== null) {
+		//let current = this.head;
+		//(!current.next.next) es igual a (current.next.next !== null)
+		while (current.next.next) {
 			current = current.next; // aqui estoy diciendole que avance una posicion más
 		}
+
 		// al salir del while se ejecuta esto
 		let aux2 = current.next.value; // nos guardamos SOLO EL VALOR del nodo a eliminar
 		current.next = null;
@@ -87,16 +88,44 @@ console.log(lista1);
 */
 
 LinkedList.prototype.search = function (algo) {
+	// Lo busco y si no tiene ningun nodo:
 	if (!this.head) return null;
 
+	let current = this.head;
+	//analizo la posicion donde estoy
+	// en 'while (current)' le pregunto si current no es igual a null
+	// si da algun 'return' se corta el bucle
+	while (current) {
+		// Verifico si el valor dado es igual al valor del current
+		if (current.value === algo) {
+			return current.value;
+			// Verifico si es una funcion
+		} else if (typeof algo == 'function') {
+			// si es funcion le aplico al current.value
+			// y si esa funcion da true
+			// retornara el current.value osea el valor de esa posicion
+			// ejm:
+			//search(function(value) value*2 === 4 ? true : false )
+			if (algo(current.value)) {
+				return current.value;
+			}
+		}
+		// Si no se cumple ninguna de las condiciones de arriba
+		// se hará nuevamente el recorrido :
+		current = current.next;
+	}
+
+	return null;
+
+	/* if (!this.head) return null;
 	var callBack;
-	// si el argumento que recibimos NO ES UNA FUNCION
+	//* si el argumento que recibimos NO ES UNA FUNCION
 	if (typeof algo !== 'function') {
 		callBack = function (data) {
 			return data === algo;
 		};
 	} else {
-		// aca entra si SI es una funcion
+		//* aca entra si SI es una funcion
 		callBack = algo;
 	}
 
@@ -105,12 +134,14 @@ LinkedList.prototype.search = function (algo) {
 		if (callBack(current.value)) {
 			return current.value;
 		} else {
-			//sino sigo avanzando
+			//*sino sigo avanzando
 			current = current.next;
 		}
 	}
 
 	return null;
+
+ */
 };
 
 /* 
@@ -146,42 +177,76 @@ La clase debe tener los siguientes métodos:
 
 Ejemplo: supongamos que quiero guardar {instructora: 'Ani'} en la tabla. Primero puedo chequear, con hasKey, si ya hay algo en la tabla con el nombre 'instructora'; luego, invocando set('instructora', 'Ani'), se almacenará el par clave-valor en un bucket específico (determinado al hashear la clave)
 */
+
+// Contactos de Telefono
+// key: nombre
+// value: n° telefono
+
+//set
+// pirulo pirulita -> 749390375
+// 7 consonantes -> van a ir a parar a la pagina 7
+// pagina 7 -> pirulo pirulita: 749390375
+
+// get
+// pirulo pirulita
+// hash(pirulo pirulita) = 7
+// voy a la pagina 7 -> obtengo el numero de pirulo pirulita
+
+// key -> donde guardarlo y donde ir a buscarlo!
+// value -> es el valor asociado a ese key
+
 function HashTable() {
-	this.buckets = [];
+	this.buckets = []; // [{},{},{},{}]
 	this.numBuckets = 35;
 }
 
-// key da la posicion donde guardamos el elemento
 HashTable.prototype.hash = function (key) {
 	var sum = 0;
 	for (let i = 0; i < key.length; i++) {
+		// suma los codigo ascii de cada letra del string
 		sum = sum + key.charCodeAt(i);
-	} // suma los codigo ascii del lo que pasemos
+	}
+	// se retorna el resto que sera la posicion de bucket donde se guardara
 	return sum % this.numBuckets;
 };
 
 HashTable.prototype.set = function (key, value) {
-	if (typeof key !== 'string') throw TypeError("'keys must be strings'");
-	let index = this.hash(key); //devuelve posicion de memoria
-	if (this.buckets[index] === undefined) {
-		//colicines ocupan la misma posicion de memoria, entonces creamos un objeto
-		this.buckets[index] = {};
+	if (typeof key !== 'string') throw TypeError('debe ser un string');
+
+	// Aplicamos la funcion hash en 'key' y lo guardamos en la posicion 'i'
+	let i = this.hash(key);
+
+	// Revisamos y si no hay nada en la posicion 'i' creamos un obj vacio
+	// esto sera para evitar futuras colisiones cuando los hashkey sean iguales
+	if (this.buckets[i] === undefined) {
+		this.buckets[i] = {}; // Tambien puede ser un arreglo , una lista , cualquier estructura de datos para almacenarlos.
 	}
-	this.buckets[index][key] = value;
-}; // buckets = {[foo : bar1, off: bar3]}
+	this.buckets[i][key] = value;
+	// this.buckets = []
+	// i = 3
+	// this.buckets[3] = [ , , ,{}]
+	// this.buckets[3][hola] = [ , , ,{hola: value}];
+	// this.buckets[3][henry] = [ , , ,{hola: value, henry: value}];
+
+	// error comun:
+	// this.buckets[3].key -> NO usar para la key 'dot notation' porque es un valor variable sino usar 'bracket notation'
+};
+
 HashTable.prototype.get = function (key) {
-	let index = this.hash(key); // foo
-	if (this.buckets[index][key]) {
-		return this.buckets[index][key]; //[{foo: "hola"}]
-	}
+	let i = this.hash(key); // 3
+	// this.buckets[3][hola] = [ , , ,{hola: value}];
+	return this.buckets[i][key];
 };
+
 HashTable.prototype.hasKey = function (key) {
-	let index = this.hash(key);
-	console.log(index);
-	if (typeof this.buckets[index] === 'object')
-		return this.buckets[index].hasOwnProperty(key);
-	return false;
+	// Esta funcion 'haskey' es para saber si existe o no esa 'key'
+	let i = this.hash(key);
+	// this.buckets[3] = [ , , ,{hola: value, chau: value2, bye: value3}]
+	return this.buckets[i].hasOwnProperty(key);
+	// key = chau -> true
+	// key = ahdhjkasbn -> false
 };
+
 /* 
 let dato1 = new HashTable();
 console.log(dato1);
