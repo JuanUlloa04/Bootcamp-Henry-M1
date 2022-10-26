@@ -28,10 +28,10 @@
 Otro tema importante en JavaScript es `closures`. Veamos a que se refieren con un ejemplo:
 
 ```javascript
-function saludar( saludo ){
-  return function( nombre ){
-    console.log(saludo + ' ' + nombre);
-  }
+function saludar(saludo) {
+	return function (nombre) {
+		console.log(saludo + ' ' + nombre);
+	};
 }
 
 var saludarHola = saludar('Hola'); // Esto devuelve una función
@@ -43,30 +43,35 @@ Veamos paso a paso lo que va a ocurrir cuando ejecutemos este código. Primero s
 
 ![Closure](../_src/assets/02-JavaScriptAvanzado-I/Closure.png)
 
-Luego de terminar de ejecutar y retornar una funcion (la que estamos guardando en `saludarHola`), ese contexto es _destruido_. Pero que pasa con la variable `saludo`?. Bueno, el interprete saca el contexto del stack, pero deja en algún lugar de memoria las variables que se usaron adentro (hay un  proceso dentro de JavaScript que se llama `garbage collection` que eventualmente las va limpiando si no las usamos. ). Por lo tanto, esa variable todavía va a estar en memoria (Segunda parte de la imagen).
-Por último ejecutamos la función `saludarHola` y pasamos como parámetro el string `'Hola'`. Por lo tanto se crea un nuevo contexto de ejecucción, con la variable mencionada. Ahora, cómo adentro de la función `saludarHola` hacemos referencia a la variable `saludo`, el interprete intenta buscarla en su scope; Cómo `saludo` __no está definida en ese contexto__, el interprete sale a buscarla siguiente la `scope chain` y a pesar que el contexto ya no existe, __la referencia al ambiente exterior y a sus variables todavía existe__, a este fenómeno es que le llamamos _CLOSURE_. En el ejemplo, el _closure_ está definido por el rectángulo punteado de rojo. Las _closures_ no son algo que se escriban, o qué se le indique al interprete, simplemente son una _feature_ del lenguaje, simplemente ocurren. Nosotros no tenemos que pensar ni ocuparnos de mantener variables en memoria según el contexto de ejecucción en el que estemos, el interprete se encargará de esto siempre. Los _Closures_ nos van a permitir armar algunos patrones interesantes.
+Luego de terminar de ejecutar y retornar una funcion (la que estamos guardando en `saludarHola`), ese contexto es _destruido_. Pero que pasa con la variable `saludo`?. Bueno, el interprete saca el contexto del stack, pero deja en algún lugar de memoria las variables que se usaron adentro (hay un proceso dentro de JavaScript que se llama `garbage collection` que eventualmente las va limpiando si no las usamos. ). Por lo tanto, esa variable todavía va a estar en memoria (Segunda parte de la imagen).
+Por último ejecutamos la función `saludarHola` y pasamos como parámetro el string `'Hola'`. Por lo tanto se crea un nuevo contexto de ejecucción, con la variable mencionada. Ahora, cómo adentro de la función `saludarHola` hacemos referencia a la variable `saludo`, el interprete intenta buscarla en su scope; Cómo `saludo` **no está definida en ese contexto**, el interprete sale a buscarla siguiente la `scope chain` y a pesar que el contexto ya no existe, **la referencia al ambiente exterior y a sus variables todavía existe**, a este fenómeno es que le llamamos _CLOSURE_. En el ejemplo, el _closure_ está definido por el rectángulo punteado de rojo. Las _closures_ no son algo que se escriban, o qué se le indique al interprete, simplemente son una _feature_ del lenguaje, simplemente ocurren. Nosotros no tenemos que pensar ni ocuparnos de mantener variables en memoria según el contexto de ejecucción en el que estemos, el interprete se encargará de esto siempre. Los _Closures_ nos van a permitir armar algunos patrones interesantes.
 
 ### Ejemplo Closures
 
 ```javascript
-var creaFuncion = function(){
-  var arreglo = [];
+var creaFuncion = function () {
+	var arreglo = [];
 
-  for ( var i=0; i < 3; i++){
-    arreglo.push(
-      function(){
-        console.log(i);
-      }
-    )
-  }
-  return arreglo;
-}
+	for (var i = 0; i < 3; i++) {
+		arreglo.push(function () {
+			console.log(i);
+		});
+	}
+	return arreglo;
+};
 
 var arr = creaFuncion();
 
-arr[0]() // 3 sale un 3, qué esperaban ustedes??
-arr[1]() // 3
-arr[2]() // 3
+// el arreglo contiene 3 funciones que hacen console.log de "i"
+// var arreglo = [[function],[function],[function]]
+// a continuacion ejecutare cada funcion:
+arr[0](); // 3 sale un 3, qué esperaban ustedes??
+arr[1](); // 3
+arr[2](); // 3
+// despues del bucle for "i" quedo en "3" por el "i++"
+// por eso sale 3 al ejecutarlo
+// si cambiamos el 'var' en el bucle for por 'Let' se solucionaria este problema o tmb con una 'IIFE'
+// esto debido a los contextos
 ```
 
 ¿Porqué el console log da todos `3`?
@@ -83,23 +88,25 @@ Cuando el interprete llega a la línea del `return`, se _destruye_ el contexto d
 Si quisieramos que cada función guardase el valor de `i`, deberíamos crear un _execution content_ donde se cree una variable nueva en cada iteración. Para eso vamos a usar una _IIFE_ a la cuál le vamos a pasar como parámetro `i`. Como estamos ejecutando la función, se va a a crear un contexto nuevo por cada ejecución, y por ende van a exisiter tres variables `j` (cada una en un contexto distinto) que contendrán los valores recibidos por parámetro (_1, 2 y 3_).
 
 ```javascript
-var creaFuncion = function(){
-  var arreglo = [];
-  for ( var i=0; i < 3; i++){
-    arreglo.push(
-      (function(j){
-        return function() {console.log(j);}
-      }(i))
-    )
-  }
-  return arreglo;
-}
+var creaFuncion = function () {
+	var arreglo = [];
+	for (var i = 0; i < 3; i++) {
+		arreglo.push(
+			(function (j) {
+				return function () {
+					console.log(j);
+				};
+			})(i)
+		);
+	}
+	return arreglo;
+};
 
 var arr = creaFuncion();
 
-arr[0]() // 1
-arr[1]() // 2
-arr[2]() // 3
+arr[0](); // 0
+arr[1](); // 1
+arr[2](); // 2
 ```
 
 ### Function Factory
@@ -109,16 +116,16 @@ Vamos a ver un patrón para crear funciones, muy usado en el desarrollo de frame
 Veamos el siguiente código, primero definimos una función que va retornar otra función (esta sería nuestra _fábrica de funciones_), esta recibe como parámetro el lenguaje del saludo, y retorna una función que salude (console loguee) en el idioma recibido.
 
 ```javascript
-function hacerSaludo( lenguaje ){
-  return function(){
-    if ( lenguaje === 'en'){
-      console.log('Hi!');
-    }
+function hacerSaludo(lenguaje) {
+	return function () {
+		if (lenguaje === 'en') {
+			console.log('Hi!');
+		}
 
-    if ( lenguaje === 'es'){
-      console.log('Hola!');
-    }
-  }
+		if (lenguaje === 'es') {
+			console.log('Hola!');
+		}
+	};
 }
 
 var saludoIngles = hacerSaludo('en');
@@ -127,7 +134,7 @@ var saludoEspaniol = hacerSaludo('es');
 
 Si pensamos que ocurre cuando ejecutamos esas líneas, vamos a ver que se crearon dos closures. Uno para cada ejecución de la función `hacerSaludo`, en un closure la variable `lenguaje` contiene `es` y en el otro contiene `en`. Entonces, cuando invoquemos las funciones `saludoIngles` o `saludoEspaniol`, el intérprete va a salir a buscar la referencia a esa variable fuera del contexto de ejecución y la va a encontrar en el closure correspondiente.
 
-O sea, que estamos usando el concepto de __closure__ para setear un parámetro para que viva sólo dentro de una función, además nadie puede ingresar al valor de `lenguaje`, esto agrega un poco de seguridad a nuestro código.
+O sea, que estamos usando el concepto de **closure** para setear un parámetro para que viva sólo dentro de una función, además nadie puede ingresar al valor de `lenguaje`, esto agrega un poco de seguridad a nuestro código.
 
 ![FunctionFactory](../_src/assets/02-JavaScriptAvanzado-I/functionFactory.png)
 
@@ -140,13 +147,13 @@ Ahora que sabemos lo que son los _closures_, si pensamos en todo lo que hicimos 
 Por ejemplo:
 
 ```javascript
-function saludarMasTarde(){
-  var saludo = 'Hola';
+function saludarMasTarde() {
+	var saludo = 'Hola';
 
-  setTimeout( function(){
-    console.log(saludo);
-  },3000)
-};
+	setTimeout(function () {
+		console.log(saludo);
+	}, 3000);
+}
 
 saludarMasTarde();
 ```
@@ -162,40 +169,38 @@ Cuando vimos el keyword `this`, dijimos que el interprete era el que manejaba el
 
 Como en JavaScript las funciones son un tipo objeto especial (vimos que tenian algunas propiedades especiales como `code` y `name`), estas también contienen métodos propios. Todas las funciones tienen acceso a los métodos:
 
-* call()
-* bind()
-* apply()
+- call()
+- bind()
+- apply()
 
 Justamente invocando estos métodos vamos a poder tener control sobre el keyword `this`. Veamos algunos ejemplos:
 
 ```javascript
-
 var persona = {
-  nombre: 'Franco',
-  apellido: 'Chequer',
+	nombre: 'Franco',
+	apellido: 'Chequer',
 
-  getNombre: function(){
-    var nombreCompleto = this.nombre + ' ' + this.apellido;
-    return nombreCompleto;
-  }
-}
+	getNombre: function () {
+		var nombreCompleto = this.nombre + ' ' + this.apellido;
+		return nombreCompleto;
+	},
+};
 
-var logNombre = function(){
-  console.log(this.getNombre());
-}
+var logNombre = function () {
+	console.log(this.getNombre());
+};
 ```
 
 En este ejemplo, vamos a usar el keyword `this` para invocar el método del objeto persona. Como verán, el código de arriba produce un error, ya que cuando ejecutamos `logNombre()`, el `this` que está adentro hace referencia al objeto global, y ese objeto no tiene un método `getNombre`.
 
 ```javascript
-
 var logNombrePersona = logNombre.bind(persona);
 logNombrePersona();
 ```
 
-La función `bind()` devuelve una __copia__ de la función, la cúal tiene internamente asociado el keyword `this` al objeto que le pasemos por parámtro. Si la llamamos sobre `logNombre` y le pasamos `persona` como argumento, vamos a ver que al ejecutar la _nueva_ función `logNombrePersona()` se va a loguear correctamente el nombre de `persona`.
+La función `bind()` devuelve una **copia** de la función, la cúal tiene internamente asociado el keyword `this` al objeto que le pasemos por parámtro. Si la llamamos sobre `logNombre` y le pasamos `persona` como argumento, vamos a ver que al ejecutar la _nueva_ función `logNombrePersona()` se va a loguear correctamente el nombre de `persona`.
 
-Si usamos `bind()` entonces la nueva función queda __siempre__ ligada al objeto que pasamos cómo argumento. O sea que si quisieramos usarla para otro objeto, tendríamos que crear una nueva _copia_ de la función y _bindiarle_ un nuevo objeto.
+Si usamos `bind()` entonces la nueva función queda **siempre** ligada al objeto que pasamos cómo argumento. O sea que si quisieramos usarla para otro objeto, tendríamos que crear una nueva _copia_ de la función y _bindiarle_ un nuevo objeto.
 Si ese es el caso, podríamos usar `call()`, veamos cómo funciona:
 
 ```javascript
@@ -207,9 +212,9 @@ En este caso, estamos invocando la función original `logNombre`, pero con `call
 El primer argumento de `call` es el objeto a usar cómo `this`. Despues de este puedo pasar otros argumentos, que serán pasados a la función que estamos invocando. Por ejemplo, si nuestra función recibiera argumentos, usariamos `call` de la siguiente manera:
 
 ```javascript
-var logNombre = function(arg1, arg2){
-  console.log(arg1 +' '+ this.getNombre() +' '+ arg2);
-}
+var logNombre = function (arg1, arg2) {
+	console.log(arg1 + ' ' + this.getNombre() + ' ' + arg2);
+};
 
 logNombre.call(persona, 'Hola', ', Cómo estas?'); //Hola Franco Chequer , Cómo estas?
 ```
@@ -217,9 +222,9 @@ logNombre.call(persona, 'Hola', ', Cómo estas?'); //Hola Franco Chequer , Cómo
 De hecho, la función `apply` es casi igual a `call`, excepto que recibe los argumentos de distinta manera. `apply` necesita dos arguemntos, el primero es el objeto a bindear con `this` (igual que `call`) y el segundo parámetro es un arreglo, en este arreglo pasamos los argumentos que va a usar la función que invocamos. Por ejemplo, para obtener el mismo comportamiento que arriba, pero con `apply`:
 
 ```javascript
-var logNombre = function(arg1, arg2){
-  console.log(arg1 +' '+ this.getNombre() +' '+ arg2);
-}
+var logNombre = function (arg1, arg2) {
+	console.log(arg1 + ' ' + this.getNombre() + ' ' + arg2);
+};
 
 logNombre.apply(persona, ['Hola', ', Cómo estas?']); //Hola Franco Chequer , Cómo estas?
 ```
@@ -229,12 +234,12 @@ Un arreglo puede ser más fácil de pasar cuando no sabemos a priori cuantos arg
 > Vamos a usar `call` o `apply` según nos convenga para resolver el problema que necesitemos.
 
 Vamos a usar estos métodos muchas veces cuando programemos, tal vez ahora no se imaginen un caso puntual, pero los habrá! se los aseguro!
-Veamos un simple ejemplo donde podríamos usarlos, esto se conoce cómo __function borrowing__ (tomando prestadas funciones). Vamos a crear una segunda _persona_, pero que no tenga el método `getNombre` como la primera:
+Veamos un simple ejemplo donde podríamos usarlos, esto se conoce cómo **function borrowing** (tomando prestadas funciones). Vamos a crear una segunda _persona_, pero que no tenga el método `getNombre` como la primera:
 
 ```javascript
 var persona2 = {
-  nombre: 'Manu',
-  apellido: 'Barna'
+	nombre: 'Manu',
+	apellido: 'Barna',
 };
 ```
 
@@ -247,12 +252,12 @@ persona.getNombre.call(persona2); //'Manu Barna'
 Con esto pudimos invocar un método de un objeto, pero usándolo con otro!
 
 Veamos otro mini patron: _function currying_, este involucra `bind`.
-Como `bind` crea una nueva función, si le pasamos parámetros, estos quedan __fijos__ en la nueva función. En el ejemplo no vamos a bindiar `this` con nada, pero si unos parámetros.
+Como `bind` crea una nueva función, si le pasamos parámetros, estos quedan **fijos** en la nueva función. En el ejemplo no vamos a bindiar `this` con nada, pero si unos parámetros.
 Digamos que tenemos una función que multiplica dos números recibidos por parámetro. Y nos gustaría construir una función que multiplique un número recibido por argumento por dos. Para esto podríamos usar `bind` y le pasamos cómo primer parámetro `this` (en este caso `this` hace referencia al contexto global), y como segundo parámetro un `2`. Guardamos el resultado en una nueva variable:
 
 ```javascript
-function multiplica(a, b){
-  return a * b;
+function multiplica(a, b) {
+	return a * b;
 }
 
 var multiplicaPorDos = multiplica.bind(this, 2);
